@@ -36,7 +36,7 @@ builder.Services.AddIdentityServer(options => {
 
 }).AddInMemoryIdentityResources(SD.IdentityResources).AddInMemoryApiScopes(SD.GetApiScopes).AddInMemoryClients(SD.Clients)
    .AddAspNetIdentity<ApplicationUser>().AddDeveloperSigningCredential();
-
+builder.Services.AddRazorPages();
 
 var app = builder.Build();
 
@@ -52,22 +52,23 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
-
+app.UseIdentityServer();
+app.MapRazorPages();
 app.UseAuthorization();
-app.MapRazorPages().RequireAuthorization();
+//app.MapRazorPages();//.RequireAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-SeedDataase();
+//SeedDataase();
 app.Run();
-void SeedDataase()
-{
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
-        dbInitializer.Initialize();
-    }
-}
+//void SeedDataase()
+//{
+//    using (var scope = app.Services.CreateScope())
+//    {
+//        var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+//        dbInitializer.Initialize();
+//    }
+//}
 
 
 

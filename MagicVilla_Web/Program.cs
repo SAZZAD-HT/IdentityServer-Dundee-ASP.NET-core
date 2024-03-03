@@ -2,6 +2,8 @@ using MagicVilla_Web;
 using MagicVilla_Web.Services.IServices;
 using MagicVilla_Web.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using System.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,32 +30,48 @@ builder.Services.AddDistributedMemoryCache();
 //                  options.AccessDeniedPath = "/Auth/AccessDenied";
 //                  options.SlidingExpiration = true;
 //              });
+builder.Services.AddHttpClient("oidc")
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+    {
+        ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator,
+    });
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = "oidc";
 })
-.AddCookie(options =>
-{
-    options.Cookie.HttpOnly = true;
-    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-    options.LoginPath = "/Auth/Login";
-    options.AccessDeniedPath = "/Auth/AccessDenied";
-    options.SlidingExpiration = true;
-})
+     .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+     {
+         options.Cookie.Name = "mvcimplicit";
+         options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+         options.Cookie.HttpOnly = true;
+         options.LoginPath = "/Auth/Login";
+         options.AccessDeniedPath = "/Auth/AccessDenied";
+     })
 .AddOpenIdConnect("oidc", options =>
 {
-    // options.Authority = builder.Configuration["ServiceUrls:IdentityAPI"];
+
+
+    //options.Authority = "https://demo.duendesoftware.com";
+    //options.ClientId = "login";
+    //options.GetClaimsFromUserInfoEndpoint = true;
+
+    //options.ClientSecret = "secret";
+
+
     options.Authority = "https://localhost:7106";
     options.GetClaimsFromUserInfoEndpoint = true;
     options.ClientId = "User1";
     options.ClientSecret = "secret";
-    options.ResponseType = "code";
+    //options.ResponseType = "Code";
 
     options.TokenValidationParameters.NameClaimType = "name";
     options.TokenValidationParameters.RoleClaimType = "role";
-    options.Scope.Add("all");
-    options.SaveTokens = true;
+    options.Scope.Add("User1");
+    //options.SaveTokens = true;
+    //options.CallbackPath = "/signin-oidc";
+
+
 });
 
 builder.Services.AddSession(options =>
@@ -79,6 +97,7 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseSession();
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
