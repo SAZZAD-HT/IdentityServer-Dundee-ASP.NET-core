@@ -20,6 +20,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
 builder.Services.AddRazorPages();
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 
+
 builder.Services.Configure<IdentityOptions>(options =>
 {
     options.Password.RequiredLength = 0;
